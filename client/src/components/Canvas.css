@@ -1,0 +1,8 @@
+.canvas-container {
+  width: 800px;
+  outline: 2px solid black;
+}
+  
+canvas {
+  cursor: crosshair;
+}
