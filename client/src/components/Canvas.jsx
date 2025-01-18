@@ -1,7 +1,12 @@
 import React, { useRef, useEffect } from "react";
+import useSocket from "../hooks/useSocket.js";
+
 import "./Canvas.css";
 
-const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
+const Canvas = ({ sendDataURL, currentServerDataUrl, canDraw }) => {
+
+  //get socket
+  const socket = useSocket();
 
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
@@ -37,15 +42,15 @@ const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
     }
 
     // If not the user's turn, ensure drawing is disabled
-    if (!canDraw) {
+    if (!socket.canDraw) {
       isDrawingRef.current = false;
     }
 
-  }, [canDraw]);
+  }, [socket.canDraw]);
 
   useEffect(() => {
     //Stop recieving server canvas if user is the drawer
-    if (canDraw) return;
+    if (socket.canDraw) return;
 
     const canvas = canvasRef.current;
     const container = canvas.parentElement;
@@ -53,7 +58,7 @@ const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
     canvas.height = (container.offsetWidth * 2) / 3; // Maintain 3:2 aspect ratio
     const context = canvas.getContext("2d");
     
-    if (serverDataUrl) {
+    if (socket.currentServerDataUrl) {
       const img = new Image();
       img.onload = () => {
         setTimeout(() => {
@@ -61,13 +66,13 @@ const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
           context.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image
         }, 50); // Add a small delay to avoid the flicker
       };
-      img.src = serverDataUrl; // Set image source to the server's data URL
+      img.src = socket.currentServerDataUrl; // Set image source to the server's data URL
     }
-  }, [serverDataUrl, canDraw])
+  }, [socket.currentServerDataUrl, socket.canDraw])
   
 
   const startDrawing = (e) => {
-    if (!canDraw) return; // Prevent drawing if it's not the user's turn
+    if (!socket.canDraw) return; // Prevent drawing if it's not the user's turn
     const { offsetX, offsetY } = e.nativeEvent;
     contextRef.current.beginPath();
     contextRef.current.moveTo(offsetX, offsetY);
@@ -75,18 +80,18 @@ const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
   };
 
   const draw = (e) => {
-    if (!canDraw || !isDrawingRef.current) return; // Prevent drawing if not allowed
+    if (!socket.canDraw || !isDrawingRef.current) return; // Prevent drawing if not allowed
     const { offsetX, offsetY } = e.nativeEvent;
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
 
     // Send the drawing to the server
     const dataURL = canvasRef.current.toDataURL();
-    updateDataURL(dataURL);
+    socket.sendDataURL(dataURL);
   };
 
   const stopDrawing = () => {
-    if (!canDraw) return;
+    if (!socket.canDraw) return;
     if (isDrawingRef.current) {
       isDrawingRef.current = false;
       contextRef.current.closePath();
@@ -97,7 +102,7 @@ const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
     const canvas = canvasRef.current;
     const context = contextRef.current;
     context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    updateDataURL(canvas.toDataURL()); // Update the server with the cleared canvas
+    socket.sendDataURL(canvas.toDataURL()); // Update the server with the cleared canvas
   };
 
   return (
@@ -110,10 +115,10 @@ const Canvas = ({ updateDataURL, serverDataUrl, canDraw }) => {
           onMouseUp={stopDrawing}
           onMouseOut={stopDrawing} // Handle mouse leaving the canvas
           onMouseLeave={stopDrawing}
-          style={{ cursor: canDraw ? "crosshair" : "not-allowed" }}
+          style={{ cursor: socket.canDraw ? "crosshair" : "not-allowed" }}
           />
       </div>
-      <button onClick={clearCanvas} disabled={!canDraw} >
+      <button onClick={clearCanvas} disabled={!socket.canDraw} >
         CLEAR
       </button>
     </>
