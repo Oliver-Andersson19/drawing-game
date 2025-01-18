@@ -12,17 +12,18 @@ const App = () => {
   const socket = useSocket();
 
   //Game states etc..
-  const [gameState, setGameState] = useState("game")
 
 
-  // console.log()
+  console.log(socket.userList)
+
+
 
   return (
     <div className="App">
       <div className="page-wrapper">
-        {gameState === "start" && <StartScreen />}
-        {gameState === "game" && <GameScreen />}
-        {gameState === "end" && <EndScreen />}
+        {socket.gameState === "start" && <StartScreen />}
+        {socket.gameState === "game" && <GameScreen />}
+        {socket.gameState === "end" && <EndScreen />}
       </div>
     </div>
   );

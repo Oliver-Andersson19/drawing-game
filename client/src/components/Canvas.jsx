@@ -64,7 +64,7 @@ const Canvas = ({ sendDataURL, currentServerDataUrl, canDraw }) => {
         setTimeout(() => {
           context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing
           context.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image
-        }, 50); // Add a small delay to avoid the flicker
+        }, 0); // Add a small delay to avoid the flicker
       };
       img.src = socket.currentServerDataUrl; // Set image source to the server's data URL
     }
@@ -113,7 +113,7 @@ const Canvas = ({ sendDataURL, currentServerDataUrl, canDraw }) => {
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
-          onMouseOut={stopDrawing} // Handle mouse leaving the canvas
+          onMouseOut={stopDrawing}
           onMouseLeave={stopDrawing}
           style={{ cursor: socket.canDraw ? "crosshair" : "not-allowed" }}
           />
